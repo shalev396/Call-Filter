@@ -35,13 +35,10 @@ jobs:
           cache: "npm"
           cache-dependency-path: Twilio/package-lock.json
 
-      - name: Install Twilio CLI
-        run: npm install -g twilio-cli
-
       - name: Install dependencies
         working-directory: Twilio
         run: npm ci
 
       - name: Deploy Twilio Functions
         working-directory: Twilio
-        run: twilio serverless:deploy --force
+        run: npx twilio serverless:deploy --force

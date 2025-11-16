@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "description": "Twilio Functions for Call Filter",
   "scripts": {
-    "deploy": "twilio serverless:deploy"
+    "deploy": "twilio serverless:deploy --force"
   },
   "dependencies": {
     "twilio": "^5.3.5",
     "axios": "^1.6.0"
   },
   "devDependencies": {
-    "twilio-run": "^3.0.0"
+    "twilio-run": "^3.0.0",
+    "twilio-cli": "^5.0.0",
+    "@twilio-labs/plugin-serverless": "^3.0.0"
   }
 }
