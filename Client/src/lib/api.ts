@@ -46,18 +46,39 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
+    const originalRequest = error.config as
+      | (typeof error.config & { _retry?: boolean })
+      | undefined;
 
-    // Don't trigger logout for auth endpoints (login, refresh, forgot password, reset password)
-    const isAuthEndpoint = originalRequest?.url?.includes("/auth/");
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    // Don't trigger refresh/logout for initial auth endpoints (login, forgot password, reset password)
+    // But DO handle refresh token failures by logging out
+    const isInitialAuthEndpoint =
+      originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/forgot-password") ||
+      originalRequest.url?.includes("/auth/reset-password");
 
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !isAuthEndpoint
+      !isInitialAuthEndpoint
     ) {
       originalRequest._retry = true;
 
+      // If this is the refresh endpoint itself failing, logout immediately
+      if (originalRequest.url?.includes("/auth/refresh")) {
+        console.error("[API] Refresh token failed - logging out");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("idToken");
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
+
+      // Try to refresh the token for other protected endpoints
       try {
         const refreshToken = localStorage.getItem("refreshToken");
         if (!refreshToken) {
@@ -75,7 +96,8 @@ apiClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Only clear tokens and redirect if refresh fails
+        // Refresh failed - logout
+        console.error("[API] Token refresh failed - logging out");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("idToken");
@@ -84,7 +106,7 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // For auth endpoints or other errors, just pass through
+    // For initial auth endpoints or other errors, just pass through
     return Promise.reject(error);
   }
 );
