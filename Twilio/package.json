@@ -1,0 +1,15 @@
+{
+  "name": "call-filter-twilio",
+  "version": "1.0.0",
+  "description": "Twilio Functions for Call Filter",
+  "scripts": {
+    "deploy": "twilio serverless:deploy"
+  },
+  "dependencies": {
+    "twilio": "^5.3.5"
+  },
+  "devDependencies": {
+    "@twilio-labs/serverless-runtime-types": "^3.1.0",
+    "twilio-run": "^3.6.0"
+  }
+}
