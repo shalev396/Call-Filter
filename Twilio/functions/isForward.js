@@ -1,15 +1,9 @@
 /**
- * Call Filter Function - Determines if incoming call should be forwarded
- * 
- * This function integrates with your Call Filter Dashboard backend API
- * to fetch the whitelist and schedule configuration dynamically.
- * 
- * @param {object} context - Twilio context (environment variables)
- * @param {object} event - Incoming call event data
- * @param {function} callback - Callback to return response to Twilio Studio
+ * Call Filter Function - Checks if incoming call should be forwarded
+ * Loads from Assets (/whitelist.json and /schedule.json)
  */
 
-// ===== Israel DST Helpers (from your original code) =====
+// ===== Israel DST helpers =====
 function lastSunday(year, month) {
   const d = new Date(Date.UTC(year, month + 1, 0, 12));
   const day = d.getUTCDay();
@@ -28,7 +22,9 @@ function israelDstBoundariesUtc(year) {
   const startDay = fridayBeforeLastSundayOfMarch(year);
   const endDay = lastSunday(year, 9);
   const startUtc = new Date(Date.UTC(year, 2, startDay, 0, 0, 0));
-  const endUtc = new Date(Date.UTC(year, 9, endDay, 23, 0, 0) - 24 * 3600 * 1000);
+  const endUtc = new Date(
+    Date.UTC(year, 9, endDay, 23, 0, 0) - 24 * 3600 * 1000
+  );
   return { startUtc, endUtc };
 }
 
@@ -55,157 +51,148 @@ function isUtcHourInWindow(currentUtcHour, fromUtcHour, toUtcHour) {
   return currentUtcHour >= fromUtcHour || currentUtcHour < toUtcHour;
 }
 
-/**
- * NEW: Fetch configuration from your backend API
- * This replaces hardcoded whitelist/schedule with dynamic config
- */
-async function fetchConfig(context) {
-  const axios = require('axios');
-  const API_URL = process.env.API_URL || context.API_URL;
-  const ACCESS_TOKEN = context.ACCESS_TOKEN;
-
-  if (!API_URL) {
-    console.error('API_URL not configured in Twilio environment');
-    return null;
-  }
-
-  if (!ACCESS_TOKEN) {
-    console.error('ACCESS_TOKEN not configured in Twilio environment');
-    return null;
-  }
-
-  try {
-    const response = await axios.get(`${API_URL}/api/config`, {
-      headers: {
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
-      },
-    });
-
-    if (response.data && response.data.success) {
-      return response.data.data;
-    }
-
-    console.error('Failed to fetch config:', response.data);
-    return null;
-  } catch (error) {
-    console.error('Error fetching config from API:', error.message);
-    return null;
-  }
+function parseTimeWindow(window, nowUtc) {
+  const [startH] = window.start.split(":").map(Number);
+  const [endH] = window.end.split(":").map(Number);
+  const fromUtcHour = israelLocalHourToUtcHour(startH, nowUtc);
+  const toUtcHour = israelLocalHourToUtcHour(endH, nowUtc);
+  return { fromUtcHour, toUtcHour };
 }
 
-/**
- * NEW: Check if call is within schedule windows
- * Supports multiple time windows per day (your requested format)
- */
-function isWithinSchedule(schedule, nowUtc) {
-  if (!schedule || !schedule.enabled) {
-    return false;
-  }
+// ===== Load config from assets =====
+function loadConfig() {
+  let whitelist, schedule;
 
-  const currentUtcHour = nowUtc.getUTCHours();
-  const currentDay = nowUtc.getUTCDay(); // 0-6 (Sunday-Saturday)
+  // Load whitelist from asset
+  const openWhitelist = Runtime.getAssets()["/whitelist.json"].open;
+  const whitelistContent = openWhitelist();
+  whitelist = JSON.parse(whitelistContent);
 
-  // Check each allowed time window
-  for (const window of schedule.allowedTimes) {
-    // Check if current day is in this window's allowed days
-    if (!window.dayOfWeek.includes(currentDay)) {
-      continue;
-    }
+  // Load schedule from asset
+  const openSchedule = Runtime.getAssets()["/schedule.json"].open;
+  const scheduleContent = openSchedule();
+  schedule = JSON.parse(scheduleContent);
 
-    // Parse window times (HH:MM format to UTC hours)
-    const [startHour, startMin] = window.startTime.split(':').map(Number);
-    const [endHour, endMin] = window.endTime.split(':').map(Number);
-
-    // Convert to UTC using Israel timezone offset
-    const fromUtcHour = israelLocalHourToUtcHour(startHour, nowUtc);
-    const toUtcHour = israelLocalHourToUtcHour(endHour, nowUtc);
-
-    if (isUtcHourInWindow(currentUtcHour, fromUtcHour, toUtcHour)) {
-      return true;
-    }
-  }
-
-  return false;
+  return { whitelist, schedule };
 }
 
 // ===== Main Handler =====
-exports.handler = async function (context, event, callback) {
+exports.handler = async function (_context, event, callback) {
   const nowUtc = new Date();
-  const caller = event.From || event.from || '';
+  const caller = event.From || event.from || "";
 
-  console.log(`[isForward] Call from: ${caller} at ${nowUtc.toISOString()}`);
+  console.log("=".repeat(50));
+  console.log(`[Call Filter] ${nowUtc.toISOString()}`);
+  console.log(`[Call Filter] Incoming call from: ${caller}`);
+  console.log("=".repeat(50));
 
   try {
     if (!caller) {
-      throw new Error('Missing caller number');
+      throw new Error("Missing caller number");
     }
 
-    // Fetch configuration from backend API
-    const config = await fetchConfig(context);
+    // Load config (from assets)
+    const { whitelist, schedule } = loadConfig();
 
-    if (!config) {
-      console.error('[isForward] Failed to fetch config - DENYING call by default');
-      const response = new Twilio.Response();
-      response.appendHeader('Content-Type', 'application/json');
-      response.setStatusCode(200);
-      response.setBody({
-        allow: false,
-        reason: 'config_error',
-        message: 'Could not load configuration',
-      });
-      return callback(null, response);
-    }
+    // Check whitelist first (always forward if whitelisted)
+    const isWhitelisted = whitelist.some((w) => w.number === caller);
 
-    console.log(`[isForward] Config loaded: ${config.whitelist.length} whitelisted numbers`);
-
-    // Check whitelist first - always allow
-    const isWhitelisted = config.whitelist.includes(caller);
+    console.log(`[Call Filter] Checking whitelist...`);
     if (isWhitelisted) {
-      console.log('[isForward] Caller is whitelisted - ALLOWING');
+      console.log(`[Call Filter] ✓ Number IS in whitelist`);
+      console.log(`[Call Filter] DECISION: FORWARD CALL`);
       const response = new Twilio.Response();
-      response.appendHeader('Content-Type', 'application/json');
+      response.appendHeader("Content-Type", "application/json");
       response.setStatusCode(200);
       response.setBody({
         allow: true,
-        reason: 'whitelist',
+        reason: "whitelist",
         caller,
-        nowUtc: nowUtc.toISOString(),
       });
       return callback(null, response);
     }
 
-    // Check schedule
-    const withinHours = isWithinSchedule(config.schedule, nowUtc);
+    console.log(`[Call Filter] ✗ Number NOT in whitelist`);
+    console.log(`[Call Filter] Checking schedule...`);
 
-    if (withinHours) {
-      console.log('[isForward] Within allowed schedule - ALLOWING');
-    } else {
-      console.log('[isForward] Outside allowed schedule - DENYING');
+    // Check schedule if not whitelisted
+    if (!schedule.enabled) {
+      console.log("[Call Filter] ✗ Schedule DISABLED");
+      console.log(`[Call Filter] DECISION: DENY CALL`);
+      const response = new Twilio.Response();
+      response.appendHeader("Content-Type", "application/json");
+      response.setStatusCode(403);
+      response.setBody({
+        allow: false,
+        reason: "schedule_disabled",
+      });
+      return callback(null, response);
     }
 
-    const response = new Twilio.Response();
-    response.appendHeader('Content-Type', 'application/json');
-    response.setStatusCode(200);
-    response.setBody({
-      allow: withinHours,
-      reason: withinHours ? 'within_hours' : 'outside_hours',
-      caller,
-      nowUtc: nowUtc.toISOString(),
-      offset: israelUtcOffsetHours(nowUtc),
-    });
+    const currentUtcHour = nowUtc.getUTCHours();
+    const dayOfWeek = nowUtc.getUTCDay();
+    const daySchedule = schedule.days.find((d) => d.day === dayOfWeek);
 
-    return callback(null, response);
+    if (!daySchedule || !daySchedule.windows.length) {
+      console.log(
+        `[Call Filter] ✗ No windows for today (${daySchedule?.name || "day"})`
+      );
+      console.log(`[Call Filter] DECISION: DENY CALL`);
+      const response = new Twilio.Response();
+      response.appendHeader("Content-Type", "application/json");
+      response.setStatusCode(403);
+      response.setBody({
+        allow: false,
+        reason: "no_windows",
+      });
+      return callback(null, response);
+    }
+
+    // Check if current time is in any window
+    let inWindow = false;
+    for (const window of daySchedule.windows) {
+      const { fromUtcHour, toUtcHour } = parseTimeWindow(window, nowUtc);
+      if (isUtcHourInWindow(currentUtcHour, fromUtcHour, toUtcHour)) {
+        inWindow = true;
+        break;
+      }
+    }
+
+    if (inWindow) {
+      console.log(`[Call Filter] ✓ Inside time window`);
+      console.log(`[Call Filter] DECISION: FORWARD CALL`);
+      const response = new Twilio.Response();
+      response.appendHeader("Content-Type", "application/json");
+      response.setStatusCode(200);
+      response.setBody({
+        allow: true,
+        reason: "in_schedule",
+        caller,
+      });
+      return callback(null, response);
+    } else {
+      console.log(`[Call Filter] ✗ Outside time window`);
+      console.log(`[Call Filter] DECISION: DENY CALL`);
+      const response = new Twilio.Response();
+      response.appendHeader("Content-Type", "application/json");
+      response.setStatusCode(403);
+      response.setBody({
+        allow: false,
+        reason: "outside_hours",
+      });
+      return callback(null, response);
+    }
   } catch (err) {
-    console.error('[isForward] Error:', err);
+    console.error("[Call Filter] ✗✗✗ ERROR:", err.message);
+    console.error(err.stack);
     const response = new Twilio.Response();
-    response.appendHeader('Content-Type', 'application/json');
-    response.setStatusCode(200);
+    response.appendHeader("Content-Type", "application/json");
+    response.setStatusCode(403);
     response.setBody({
       allow: false,
-      reason: 'error',
-      message: err.message || 'Unhandled error',
+      reason: "error",
+      message: err.message || "Unhandled error",
     });
     return callback(null, response);
   }
 };
-

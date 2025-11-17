@@ -1,5 +1,5 @@
 {
-  "description": "Call Filter Flow - Updated",
+  "description": "Call Filter Flow",
   "states": [
     {
       "name": "Trigger",
@@ -9,7 +9,7 @@
           "event": "incomingMessage"
         },
         {
-          "next": "CheckIfForward",
+          "next": "SetForwardNumber",
           "event": "incomingCall"
         },
         {
@@ -30,11 +30,33 @@
       }
     },
     {
-      "name": "CheckIfForward",
+      "name": "SetForwardNumber",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "IsForwardable",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "+1234567890",
+            "key": "forwardNumber"
+          }
+        ],
+        "offset": {
+          "x": 140,
+          "y": 210
+        }
+      }
+    },
+    {
+      "name": "IsForwardable",
       "type": "run-function",
       "transitions": [
         {
-          "next": "CheckResult",
+          "next": "ForwardCall",
           "event": "success"
         },
         {
@@ -48,7 +70,7 @@
         "function_sid": "YOUR_FUNCTION_SID",
         "offset": {
           "x": 160,
-          "y": 210
+          "y": 450
         },
         "parameters": [
           {
@@ -56,36 +78,7 @@
             "key": "from"
           }
         ],
-        "url": "https://YOUR_TWILIO_DOMAIN.twil.io/isForward"
-      }
-    },
-    {
-      "name": "CheckResult",
-      "type": "split-based-on",
-      "transitions": [
-        {
-          "next": "ForwardCall",
-          "event": "match",
-          "conditions": [
-            {
-              "friendly_name": "If value equal_to true",
-              "arguments": ["{{widgets.CheckIfForward.parsed.allow}}"],
-              "type": "equal_to",
-              "value": "true"
-            }
-          ]
-        },
-        {
-          "next": "SayNotAvailable",
-          "event": "noMatch"
-        }
-      ],
-      "properties": {
-        "input": "{{widgets.CheckIfForward.parsed.allow}}",
-        "offset": {
-          "x": 160,
-          "y": 450
-        }
+        "url": "https://YOUR_DOMAIN.twil.io/isForward"
       }
     },
     {
@@ -106,7 +99,7 @@
         },
         "caller_id": "{{contact.channel.address}}",
         "noun": "number",
-        "to": "+972559205070",
+        "to": "{{widgets.SetForwardNumber.forwardNumber}}",
         "timeout": 30
       }
     },
@@ -119,14 +112,14 @@
         }
       ],
       "properties": {
-        "voice": "Polly.Ayelet",
+        "voice": "Polly.Joanna",
         "offset": {
           "x": 330,
           "y": 670
         },
         "loop": 1,
-        "say": "הלקוח לא זמין כרגע. אנא נסה שוב בין השעות 9:00 בבוקר ל-4:00 אחר הצהריים",
-        "language": "he-IL"
+        "say": "the client is not available at the moment. Please try again later. Thank you.",
+        "language": "en-US"
       }
     }
   ],
@@ -135,4 +128,3 @@
     "allow_concurrent_calls": true
   }
 }
-

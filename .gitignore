@@ -57,6 +57,7 @@ next-env.d.ts
 
 # Twilio
 .twiliodeployinfo
+.twilio-functions
 
 # AWS
 .aws-sam/
