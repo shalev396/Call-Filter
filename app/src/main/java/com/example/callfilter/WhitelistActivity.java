@@ -20,7 +20,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class WhitelistActivity extends AppCompatActivity {
 
@@ -56,7 +55,7 @@ public class WhitelistActivity extends AppCompatActivity {
 
                     String normalizedNumber = number.replaceAll("[\\s\\-()]", "");
 
-                    WhitelistedContact newContact = new WhitelistedContact(UUID.randomUUID().toString(), name, normalizedNumber);
+                    WhitelistedContact newContact = new WhitelistedContact(name, normalizedNumber);
                     whitelist.add(newContact);
                     configManager.setWhitelist(whitelist);
                     adapter.notifyItemInserted(whitelist.size() - 1);

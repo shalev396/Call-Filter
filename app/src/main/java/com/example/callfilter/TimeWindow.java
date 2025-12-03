@@ -1,8 +1,8 @@
 package com.example.callfilter;
 
 public class TimeWindow {
-    private final int startMinutes;
-    private final int endMinutes;
+    private int startMinutes;
+    private int endMinutes;
 
     public TimeWindow(int startMinutes, int endMinutes) {
         this.startMinutes = startMinutes;
@@ -13,7 +13,15 @@ public class TimeWindow {
         return startMinutes;
     }
 
+    public void setStartMinutes(int startMinutes) {
+        this.startMinutes = startMinutes;
+    }
+
     public int getEndMinutes() {
         return endMinutes;
+    }
+
+    public void setEndMinutes(int endMinutes) {
+        this.endMinutes = endMinutes;
     }
 }

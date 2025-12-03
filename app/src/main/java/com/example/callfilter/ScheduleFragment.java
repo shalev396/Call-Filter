@@ -1,5 +1,6 @@
 package com.example.callfilter;
 
+import android.app.TimePickerDialog;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -47,9 +48,7 @@ public class ScheduleFragment extends Fragment implements TimeSheetView.OnWindow
         setupDaySelector();
         updateScheduleView();
 
-        view.findViewById(R.id.fab_add_schedule).setOnClickListener(v -> {
-            // TODO: Implement add time window dialog
-        });
+        view.findViewById(R.id.fab_add_schedule).setOnClickListener(v -> showAddTimeWindowDialog());
 
         return view;
     }
@@ -107,6 +106,57 @@ public class ScheduleFragment extends Fragment implements TimeSheetView.OnWindow
         showEditTimeWindowDialog(window);
     }
 
+    private void showAddTimeWindowDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.AlertDialog_Dark);
+        View view = getLayoutInflater().inflate(R.layout.dialog_add_time_window, null);
+        builder.setView(view);
+
+        TextView startTime = view.findViewById(R.id.start_time);
+        TextView endTime = view.findViewById(R.id.end_time);
+        Button addButton = view.findViewById(R.id.button_add);
+        Button cancelButton = view.findViewById(R.id.button_cancel);
+
+        final int[] startMinutes = {0};
+        final int[] endMinutes = {0};
+
+        startTime.setOnClickListener(v -> {
+            Calendar now = Calendar.getInstance();
+            new TimePickerDialog(requireContext(), (timePicker, hourOfDay, minute) -> {
+                startMinutes[0] = hourOfDay * 60 + minute;
+                startTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
+            }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), true).show();
+        });
+
+        endTime.setOnClickListener(v -> {
+            Calendar now = Calendar.getInstance();
+            new TimePickerDialog(requireContext(), (timePicker, hourOfDay, minute) -> {
+                endMinutes[0] = hourOfDay * 60 + minute;
+                endTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
+            }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), true).show();
+        });
+
+        AlertDialog dialog = builder.create();
+
+        addButton.setOnClickListener(v -> {
+            TimeWindow newWindow = new TimeWindow(startMinutes[0], endMinutes[0]);
+
+            DaySchedule daySchedule = findDaySchedule(selectedDay);
+            if (daySchedule == null) {
+                daySchedule = new DaySchedule(selectedDay, new ArrayList<>());
+                schedule.add(daySchedule);
+            }
+            daySchedule.getWindows().add(newWindow);
+            configManager.setSchedule(schedule);
+            updateScheduleView();
+            setupDaySelector();
+            dialog.dismiss();
+        });
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
     private void showEditTimeWindowDialog(TimeWindow window) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.AlertDialog_Dark);
         View view = getLayoutInflater().inflate(R.layout.dialog_edit_time_window, null);
@@ -118,8 +168,27 @@ public class ScheduleFragment extends Fragment implements TimeSheetView.OnWindow
         Button saveButton = view.findViewById(R.id.button_save);
         Button cancelButton = view.findViewById(R.id.button_cancel);
 
+        final int[] startMinutes = {window.getStartMinutes()};
+        final int[] endMinutes = {window.getEndMinutes()};
+
         startTime.setText(String.format(Locale.getDefault(), "%02d:%02d", window.getStartMinutes() / 60, window.getStartMinutes() % 60));
         endTime.setText(String.format(Locale.getDefault(), "%02d:%02d", window.getEndMinutes() / 60, window.getEndMinutes() % 60));
+
+        startTime.setOnClickListener(v -> {
+            Calendar now = Calendar.getInstance();
+            new TimePickerDialog(requireContext(), (timePicker, hourOfDay, minute) -> {
+                startMinutes[0] = hourOfDay * 60 + minute;
+                startTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
+            }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), true).show();
+        });
+
+        endTime.setOnClickListener(v -> {
+            Calendar now = Calendar.getInstance();
+            new TimePickerDialog(requireContext(), (timePicker, hourOfDay, minute) -> {
+                endMinutes[0] = hourOfDay * 60 + minute;
+                endTime.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
+            }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), true).show();
+        });
 
         AlertDialog dialog = builder.create();
 
@@ -140,7 +209,10 @@ public class ScheduleFragment extends Fragment implements TimeSheetView.OnWindow
                 .show());
 
         saveButton.setOnClickListener(v -> {
-            // TODO: Implement editing logic
+            window.setStartMinutes(startMinutes[0]);
+            window.setEndMinutes(endMinutes[0]);
+            configManager.setSchedule(schedule);
+            updateScheduleView();
             dialog.dismiss();
         });
 

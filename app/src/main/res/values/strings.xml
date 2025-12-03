@@ -28,4 +28,5 @@
     <string name="add_from_contacts">+ Add from contacts</string>
     <string name="remove_contact_button_description">Remove contact button</string>
     <string name="add_time_window_button">+ Add time window</string>
+    <string name="add_time_window">Add Time Window</string>
 </resources>

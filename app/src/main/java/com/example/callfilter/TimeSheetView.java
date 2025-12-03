@@ -2,6 +2,7 @@ package com.example.callfilter;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
@@ -25,6 +26,7 @@ public class TimeSheetView extends View {
 
     private final Paint hourPaint = new Paint();
     private final Paint linePaint = new Paint();
+    private final Paint windowTextPaint = new Paint();
     private final List<TimeWindow> windows = new ArrayList<>();
     private final List<Paint> windowPaints = new ArrayList<>();
     private final float hourTextHeight;
@@ -42,6 +44,10 @@ public class TimeSheetView extends View {
 
         linePaint.setColor(ContextCompat.getColor(context, R.color.dark_card_background));
         linePaint.setStrokeWidth(1f);
+
+        windowTextPaint.setColor(Color.WHITE);
+        windowTextPaint.setTextSize(30f);
+        windowTextPaint.setTextAlign(Paint.Align.CENTER);
 
         // Colors for overlapping windows
         windowPaints.add(createWindowPaint(ContextCompat.getColor(context, R.color.dark_colorAccent)));
@@ -78,20 +84,13 @@ public class TimeSheetView extends View {
     }
 
     @Override
-    public boolean performClick() {
-        super.performClick();
-        return true;
-    }
-
-    @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            performClick();
             float x = event.getX();
             float y = event.getY();
 
             List<List<TimeWindow>> columns = getColumns();
-            if (columns.isEmpty()) return false;
+            if (columns.isEmpty()) return super.onTouchEvent(event);
 
             float columnWidth = (getWidth() - rightPadding) / columns.size();
             for (int i = 0; i < columns.size(); i++) {
@@ -107,12 +106,19 @@ public class TimeSheetView extends View {
                         if (listener != null) {
                             listener.onWindowClick(window);
                         }
+                        performClick();
                         return true;
                     }
                 }
             }
         }
         return super.onTouchEvent(event);
+    }
+    
+    @Override
+    public boolean performClick() {
+        super.performClick();
+        return true;
     }
 
     @Override
@@ -143,6 +149,20 @@ public class TimeSheetView extends View {
                 float bottom = (window.getEndMinutes() / 60f) * hourHeight;
                 rect.set(left, top, right, bottom);
                 canvas.drawRect(rect, paint);
+
+                // Draw start and end time
+                String startTime = String.format(Locale.getDefault(), "%02d:%02d", window.getStartMinutes() / 60, window.getStartMinutes() % 60);
+                String endTime = String.format(Locale.getDefault(), "%02d:%02d", window.getEndMinutes() / 60, window.getEndMinutes() % 60);
+
+                float textHeight = windowTextPaint.descent() - windowTextPaint.ascent();
+                float textOffset = (textHeight / 2) - windowTextPaint.descent();
+
+                if (rect.height() > textHeight * 2.5) {
+                    canvas.drawText(startTime, rect.centerX(), rect.top + textHeight, windowTextPaint);
+                    canvas.drawText(endTime, rect.centerX(), rect.bottom - textOffset - 5, windowTextPaint);
+                } else if (rect.height() > textHeight) {
+                    canvas.drawText(startTime + " - " + endTime, rect.centerX(), rect.centerY() + textOffset, windowTextPaint);
+                }
             }
         }
     }

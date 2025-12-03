@@ -1,18 +1,12 @@
 package com.example.callfilter;
 
 public class WhitelistedContact {
-    private final String id;
     private final String name;
     private final String phoneE164;
 
-    public WhitelistedContact(String id, String name, String phoneE164) {
-        this.id = id;
+    public WhitelistedContact(String name, String phoneE164) {
         this.name = name;
         this.phoneE164 = phoneE164;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public String getName() {

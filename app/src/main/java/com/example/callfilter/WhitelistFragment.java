@@ -28,7 +28,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class WhitelistFragment extends Fragment {
 
@@ -51,13 +50,12 @@ public class WhitelistFragment extends Fragment {
                 Cursor cursor = requireContext().getContentResolver().query(contactUri, null, null, null, null);
                 if (cursor != null && cursor.moveToFirst()) {
                     int nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
-                    int numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                    if (nameIndex != -1 && numberIndex != -1) {
+                    int numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);                    if (nameIndex != -1 && numberIndex != -1) {
                         String name = cursor.getString(nameIndex);
                         String number = cursor.getString(numberIndex);
                         String normalizedNumber = number.replaceAll("[\\s\\-()]", "");
 
-                        WhitelistedContact newContact = new WhitelistedContact(UUID.randomUUID().toString(), name, normalizedNumber);
+                        WhitelistedContact newContact = new WhitelistedContact(name, normalizedNumber);
                         whitelist.add(newContact);
                         configManager.setWhitelist(whitelist);
                         adapter.notifyItemInserted(whitelist.size() - 1);
