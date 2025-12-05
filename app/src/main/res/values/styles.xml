@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Main App Theme - Slate + Teal -->
     <style name="AppTheme.Dark" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/dark_colorPrimary</item>
         <item name="colorPrimaryDark">@color/dark_colorPrimaryDark</item>
         <item name="colorAccent">@color/dark_colorAccent</item>
+        <item name="colorOnPrimary">@color/white</item>
         <item name="android:windowBackground">@color/dark_window_background</item>
         <item name="android:textColorPrimary">@color/dark_text_primary</item>
         <item name="android:textColorSecondary">@color/dark_text_secondary</item>
+        <item name="android:statusBarColor">@color/dark_window_background</item>
+        <item name="android:navigationBarColor">@color/dark_window_background</item>
     </style>
 
     <!-- Default App Theme -->
@@ -14,23 +18,65 @@
 
     <!-- Text Styles -->
     <style name="AppText.Primary" parent="Widget.AppCompat.TextView">
-        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="android:textColor">@color/dark_text_primary</item>
         <item name="android:textSize">18sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
     <style name="AppText.Secondary" parent="Widget.AppCompat.TextView">
-        <item name="android:textColor">?android:attr/textColorSecondary</item>
+        <item name="android:textColor">@color/dark_text_secondary</item>
         <item name="android:textSize">14sp</item>
     </style>
 
-    <!-- Dark Dialog Style -->
-    <style name="AlertDialog.Dark" parent="Theme.AppCompat.Dialog.Alert">
-        <item name="android:background">@color/dark_card_background</item>
-        <item name="android:textColorPrimary">@color/dark_text_primary</item>
-        <item name="android:textColorSecondary">@color/dark_text_secondary</item>
+    <style name="AppText.Title" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">@color/dark_text_primary</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
-    <!-- AppBar Overlay Style -->
-    <style name="AppTheme.Dark.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <!-- Dark Dialog Style with VISIBLE buttons -->
+    <style name="AlertDialog.Dark" parent="Theme.MaterialComponents.Dialog.Alert">
+        <item name="android:background">@color/dialog_background</item>
+        <item name="android:textColor">@color/dark_text_primary</item>
+        <item name="android:textColorPrimary">@color/dark_text_primary</item>
+        <item name="android:textColorSecondary">@color/dark_text_secondary</item>
+        <item name="buttonBarPositiveButtonStyle">@style/DialogButton.Positive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/DialogButton.Negative</item>
+        <item name="buttonBarNeutralButtonStyle">@style/DialogButton.Neutral</item>
+        <item name="colorAccent">@color/dialog_button_text</item>
+    </style>
 
+    <!-- Dialog Button Styles - HIGH VISIBILITY -->
+    <style name="DialogButton.Positive" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/dark_colorPrimary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="DialogButton.Negative" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/dark_text_secondary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="DialogButton.Neutral" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/color_error</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <!-- Danger Dialog Style (for destructive actions) -->
+    <style name="AlertDialog.Danger" parent="AlertDialog.Dark">
+        <item name="buttonBarPositiveButtonStyle">@style/DialogButton.Danger</item>
+    </style>
+
+    <style name="DialogButton.Danger" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/color_error</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
 </resources>

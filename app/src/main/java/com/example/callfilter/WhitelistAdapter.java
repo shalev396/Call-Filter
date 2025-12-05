@@ -13,7 +13,7 @@ public class WhitelistAdapter extends RecyclerView.Adapter<WhitelistViewHolder> 
 
     // Define the listener interface within the adapter
     public interface OnContactRemoveListener {
-        void onRemove(int position);
+        void onRemove(WhitelistedContact contact);
     }
 
     private List<WhitelistedContact> whitelist;
@@ -37,7 +37,7 @@ public class WhitelistAdapter extends RecyclerView.Adapter<WhitelistViewHolder> 
         holder.bind(contact, () -> {
             int bindingAdapterPosition = holder.getBindingAdapterPosition();
             if (bindingAdapterPosition != RecyclerView.NO_POSITION) {
-                removeListener.onRemove(bindingAdapterPosition);
+                removeListener.onRemove(whitelist.get(bindingAdapterPosition));
             }
         });
     }

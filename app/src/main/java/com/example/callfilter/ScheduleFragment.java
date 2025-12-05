@@ -70,15 +70,15 @@ public class ScheduleFragment extends Fragment implements TimeSheetView.OnWindow
             }
 
             if (day == selectedDay) {
-                chip.setChipBackgroundColorResource(R.color.dark_colorAccent);
+                chip.setChipBackgroundColorResource(R.color.chip_selected);
                 chip.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
                 chip.setTypeface(Typeface.DEFAULT_BOLD);
             } else if (hasSchedule) {
-                chip.setChipBackgroundColorResource(R.color.dark_color_accent_variant);
+                chip.setChipBackgroundColorResource(R.color.chip_has_data);
                 chip.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
                 chip.setTypeface(Typeface.DEFAULT);
             } else {
-                chip.setChipBackgroundColorResource(R.color.dark_card_background);
+                chip.setChipBackgroundColorResource(R.color.chip_default);
                 chip.setTextColor(ContextCompat.getColor(requireContext(), R.color.dark_text_secondary));
                 chip.setTypeface(Typeface.DEFAULT);
             }

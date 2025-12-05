@@ -99,8 +99,9 @@ public class WhitelistActivity extends AppCompatActivity {
         pickContactLauncher.launch(intent);
     }
 
-    private void removeContact(int position) {
-        if (position >= 0 && position < whitelist.size()) {
+    private void removeContact(WhitelistedContact contact) {
+        int position = whitelist.indexOf(contact);
+        if (position >= 0) {
             whitelist.remove(position);
             configManager.setWhitelist(whitelist);
             adapter.notifyItemRemoved(position);

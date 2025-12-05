@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- When checked (ON) - lighter green -->
+    <item android:alpha="0.5" android:color="@color/color_success" android:state_checked="true" />
+    <!-- When unchecked (OFF) - lighter red -->
+    <item android:alpha="0.5" android:color="@color/color_error" android:state_checked="false" />
+</selector>
+

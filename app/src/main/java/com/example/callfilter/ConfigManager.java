@@ -16,6 +16,7 @@ public class ConfigManager {
     private static final String KEY_SCHEDULE = "schedule_json";
     private static final String KEY_WHITELIST = "whitelist_json";
     private static final String KEY_BLOCKED_CALLS = "blocked_calls_json";
+    private static final String KEY_ROLE_REQUESTED = "role_requested";
 
     private final SharedPreferences prefs;
     private final Gson gson;
@@ -31,6 +32,14 @@ public class ConfigManager {
 
     public void setEnabled(boolean enabled) {
         prefs.edit().putBoolean(KEY_ENABLED, enabled).apply();
+    }
+
+    public boolean isRoleRequested() {
+        return prefs.getBoolean(KEY_ROLE_REQUESTED, false);
+    }
+
+    public void setRoleRequested(boolean requested) {
+        prefs.edit().putBoolean(KEY_ROLE_REQUESTED, requested).apply();
     }
 
     public List<DaySchedule> getSchedule() {
@@ -75,5 +84,17 @@ public class ConfigManager {
         calls.add(0, call); // Add to the top of the list
         String json = gson.toJson(calls);
         prefs.edit().putString(KEY_BLOCKED_CALLS, json).apply();
+    }
+
+    /**
+     * Clears all app data including schedule, whitelist, and blocked calls.
+     * The enabled state is preserved.
+     */
+    public void clearAllData() {
+        prefs.edit()
+                .remove(KEY_SCHEDULE)
+                .remove(KEY_WHITELIST)
+                .remove(KEY_BLOCKED_CALLS)
+                .apply();
     }
 }

@@ -85,34 +85,59 @@ public class TimeSheetView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            float x = event.getX();
-            float y = event.getY();
+        int action = event.getAction();
+        float x = event.getX();
+        float y = event.getY();
 
-            List<List<TimeWindow>> columns = getColumns();
-            if (columns.isEmpty()) return super.onTouchEvent(event);
+        if (action == MotionEvent.ACTION_DOWN) {
+            // Check if the touch is on a window
+            TimeWindow touchedWindow = findWindowAt(x, y);
+            if (touchedWindow != null) {
+                // Request parent to not intercept touch events (important for NestedScrollView)
+                getParent().requestDisallowInterceptTouchEvent(true);
+                return true; // Must return true for ACTION_DOWN to receive ACTION_UP
+            }
+        } else if (action == MotionEvent.ACTION_UP) {
+            // Find the window at this position and trigger click
+            TimeWindow touchedWindow = findWindowAt(x, y);
+            if (touchedWindow != null) {
+                if (listener != null) {
+                    listener.onWindowClick(touchedWindow);
+                }
+                performClick();
+                return true;
+            }
+        } else if (action == MotionEvent.ACTION_CANCEL) {
+            // Allow parent to intercept again if touch was cancelled
+            getParent().requestDisallowInterceptTouchEvent(false);
+        }
+        return super.onTouchEvent(event);
+    }
 
-            float columnWidth = (getWidth() - rightPadding) / columns.size();
-            for (int i = 0; i < columns.size(); i++) {
-                List<TimeWindow> column = columns.get(i);
-                float left = 10 + i * columnWidth;
-                float right = left + columnWidth - 10;
+    /**
+     * Find the TimeWindow at the given coordinates, or null if none.
+     */
+    @Nullable
+    private TimeWindow findWindowAt(float x, float y) {
+        List<List<TimeWindow>> columns = getColumns();
+        if (columns.isEmpty()) return null;
 
-                for (TimeWindow window : column) {
-                    float top = (window.getStartMinutes() / 60f) * hourHeight;
-                    float bottom = (window.getEndMinutes() / 60f) * hourHeight;
-                    rect.set(left, top, right, bottom);
-                    if (rect.contains(x, y)) {
-                        if (listener != null) {
-                            listener.onWindowClick(window);
-                        }
-                        performClick();
-                        return true;
-                    }
+        float columnWidth = (getWidth() - rightPadding) / columns.size();
+        for (int i = 0; i < columns.size(); i++) {
+            List<TimeWindow> column = columns.get(i);
+            float left = 10 + i * columnWidth;
+            float right = left + columnWidth - 10;
+
+            for (TimeWindow window : column) {
+                float top = (window.getStartMinutes() / 60f) * hourHeight;
+                float bottom = (window.getEndMinutes() / 60f) * hourHeight;
+                rect.set(left, top, right, bottom);
+                if (rect.contains(x, y)) {
+                    return window;
                 }
             }
         }
-        return super.onTouchEvent(event);
+        return null;
     }
     
     @Override
