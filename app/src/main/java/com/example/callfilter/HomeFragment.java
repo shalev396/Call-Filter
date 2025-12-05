@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.TextViewCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -260,7 +261,7 @@ public class HomeFragment extends Fragment {
             // All permissions granted
             currentMissingPermission = MissingPermission.NONE;
             permissionStatusText.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_check_circle, 0, 0, 0);
-            permissionStatusText.setCompoundDrawableTintList(ContextCompat.getColorStateList(requireContext(), R.color.color_success));
+            TextViewCompat.setCompoundDrawableTintList(permissionStatusText, ContextCompat.getColorStateList(requireContext(), R.color.color_success));
             permissionStatusText.setText(R.string.permissions_granted);
             permissionStatusDescription.setText(R.string.permissions_granted_description);
             permissionStatusDescription.setVisibility(View.VISIBLE);
@@ -273,7 +274,7 @@ public class HomeFragment extends Fragment {
             // Both missing
             currentMissingPermission = MissingPermission.BOTH;
             permissionStatusText.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_warning, 0, 0, 0);
-            permissionStatusText.setCompoundDrawableTintList(ContextCompat.getColorStateList(requireContext(), R.color.color_error));
+            TextViewCompat.setCompoundDrawableTintList(permissionStatusText, ContextCompat.getColorStateList(requireContext(), R.color.color_error));
             permissionStatusText.setText(R.string.permissions_missing_both);
             permissionStatusDescription.setText(R.string.permissions_missing_both_description);
             permissionStatusDescription.setVisibility(View.VISIBLE);
@@ -287,7 +288,7 @@ public class HomeFragment extends Fragment {
             // Only contacts missing
             currentMissingPermission = MissingPermission.CONTACTS;
             permissionStatusText.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_warning, 0, 0, 0);
-            permissionStatusText.setCompoundDrawableTintList(ContextCompat.getColorStateList(requireContext(), R.color.color_warning));
+            TextViewCompat.setCompoundDrawableTintList(permissionStatusText, ContextCompat.getColorStateList(requireContext(), R.color.color_warning));
             permissionStatusText.setText(R.string.contacts_permission_missing);
             permissionStatusDescription.setText(R.string.contacts_permission_missing_description);
             permissionStatusDescription.setVisibility(View.VISIBLE);
@@ -298,7 +299,7 @@ public class HomeFragment extends Fragment {
             // Only call screening missing
             currentMissingPermission = MissingPermission.CALL_SCREENING;
             permissionStatusText.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_warning, 0, 0, 0);
-            permissionStatusText.setCompoundDrawableTintList(ContextCompat.getColorStateList(requireContext(), R.color.color_warning));
+            TextViewCompat.setCompoundDrawableTintList(permissionStatusText, ContextCompat.getColorStateList(requireContext(), R.color.color_warning));
             permissionStatusText.setText(R.string.call_screening_missing);
             permissionStatusDescription.setText(R.string.call_screening_missing_description);
             permissionStatusDescription.setVisibility(View.VISIBLE);

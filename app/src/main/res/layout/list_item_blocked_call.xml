@@ -8,14 +8,26 @@
     android:paddingEnd="24dp"
     android:paddingBottom="16dp">
 
+    <!-- Blocked call indicator icon -->
+    <ImageView
+        android:id="@+id/icon_blocked"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_call_blocked"
+        android:contentDescription="@string/cd_blocked_call"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
     <TextView
         android:id="@+id/text_caller_name"
         style="@style/AppText.Primary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
         android:text="@string/unknown"
         app:layout_constraintEnd_toStartOf="@+id/button_call"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/icon_blocked"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -23,8 +35,9 @@
         style="@style/AppText.Secondary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
         app:layout_constraintEnd_toStartOf="@+id/button_call"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/icon_blocked"
         app:layout_constraintTop_toBottomOf="@+id/text_caller_name" />
 
     <TextView

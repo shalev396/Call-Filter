@@ -19,8 +19,12 @@
             android:paddingStart="24dp"
             android:paddingTop="24dp"
             android:paddingEnd="24dp"
+            android:gravity="center_vertical"
+            android:drawablePadding="12dp"
             android:text="@string/whitelisted_contacts"
-            android:textSize="32sp" />
+            android:textSize="32sp"
+            app:drawableStartCompat="@drawable/ic_whitelist"
+            app:drawableTint="@color/dark_colorPrimary" />
 
         <TextView
             style="@style/AppText.Secondary"

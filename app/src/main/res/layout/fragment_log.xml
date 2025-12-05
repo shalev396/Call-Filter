@@ -6,17 +6,30 @@
     android:layout_height="match_parent"
     tools:context=".LogFragment">
 
+    <!-- Header with blocked call icon -->
+    <ImageView
+        android:id="@+id/icon_blocked_log"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="28dp"
+        android:src="@drawable/ic_call_blocked"
+            android:contentDescription="@string/cd_blocked_calls"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/text_log_title"
         style="@style/AppText.Primary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingStart="24dp"
+        android:layout_marginStart="12dp"
+        android:paddingStart="0dp"
         android:paddingTop="24dp"
         android:paddingEnd="24dp"
         android:text="@string/blocked_call_log"
         android:textSize="32sp"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/icon_blocked_log"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView

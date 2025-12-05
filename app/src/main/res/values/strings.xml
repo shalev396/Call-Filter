@@ -63,6 +63,13 @@
     <!-- Symbols -->
     <string name="arrow_right">→</string>
     
+    <!-- Content Descriptions for Accessibility -->
+    <string name="cd_call_protection_status">Call protection status</string>
+    <string name="cd_blocked_calls">Blocked calls</string>
+<!--    <string name="cd_schedule_icon">Schedule</string>-->
+<!--    <string name="cd_whitelist_icon">Whitelist</string>-->
+    <string name="cd_blocked_call">Blocked call</string>
+    
     <!-- Reset Data -->
     <string name="reset_data_title">Reset App Data</string>
     <string name="reset_data_description">Having issues? Clear all schedules, whitelist, and logs to start fresh.</string>
