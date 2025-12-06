@@ -1,0 +1,146 @@
+name: Frontend CI/CD
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "web/**"
+      - ".github/workflows/frontend-cicd.yml"
+
+jobs:
+  deploy-frontend:
+    name: Deploy Frontend to AWS
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      STACK_NAME: ${{ secrets.STACK_NAME }}
+
+    steps:
+      - name: Mask sensitive environment variables
+        run: |
+          echo "::add-mask::${{ secrets.AWS_REGION }}"
+          echo "::add-mask::${{ secrets.STACK_NAME }}"
+          echo "::add-mask::${{ secrets.AWS_ACCOUNT_ID }}"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: web
+
+      - name: Run linter
+        run: npm run lint
+        working-directory: web
+
+      - name: Build
+        run: npm run build
+        working-directory: web
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          mask-aws-account-id: true
+
+      - name: Get CloudFormation Outputs
+        id: cf
+        run: |
+          echo "🔍 Retrieving CloudFormation stack outputs..."
+
+          BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --region "${{ env.AWS_REGION }}" \
+            --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" \
+            --output text)
+
+          CF_ID=$(aws cloudformation describe-stacks \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --region "${{ env.AWS_REGION }}" \
+            --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" \
+            --output text)
+
+          CF_DOMAIN=$(aws cloudformation describe-stacks \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --region "${{ env.AWS_REGION }}" \
+            --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDomainName'].OutputValue" \
+            --output text)
+
+          # Mask ALL sensitive outputs
+          echo "::add-mask::$BUCKET"
+          echo "::add-mask::$CF_ID"
+          echo "::add-mask::$CF_DOMAIN"
+
+          echo "bucket=$BUCKET" >> $GITHUB_OUTPUT
+          echo "cf_id=$CF_ID" >> $GITHUB_OUTPUT
+          echo "cf_domain=$CF_DOMAIN" >> $GITHUB_OUTPUT
+
+          echo "✅ Stack outputs retrieved and masked"
+
+      - name: Deploy to S3
+        run: |
+          echo "📦 Uploading files to S3..."
+
+          # Sync all files except index.html with long cache
+          aws s3 sync ./web/dist s3://${{ steps.cf.outputs.bucket }}/ \
+            --region "${{ env.AWS_REGION }}" \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "index.html" \
+            --no-progress
+
+          # Upload index.html separately with no cache
+          aws s3 cp ./web/dist/index.html s3://${{ steps.cf.outputs.bucket }}/index.html \
+            --region "${{ env.AWS_REGION }}" \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --no-progress
+
+          echo "✅ Files uploaded successfully"
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          echo "☁️ Invalidating CloudFront cache..."
+
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.cf.outputs.cf_id }} \
+            --paths "/*" \
+            --query 'Invalidation.Id' \
+            --output text)
+
+          # Mask invalidation ID
+          echo "::add-mask::$INVALIDATION_ID"
+
+          echo "✅ Cache invalidation initiated"
+
+      - name: Deployment Summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ Deployment Completed Successfully!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "🌐 Website URL:"
+          echo "   https://offduty-call-filter.shalev396.com"
+          echo ""
+          echo "📊 Deployment Details:"
+          echo "   • Environment: production"
+          echo "   • TypeScript/React app built and deployed"
+          echo "   • CloudFront cache invalidated"
+          echo "   • All resources secured and configured"
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
