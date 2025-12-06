@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AppIcon } from "@/components/AppIcon";
 import {
   Phone,
   Shield,
@@ -29,7 +30,7 @@ export default function PrivacyPolicy(): React.JSX.Element {
             to="/"
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
-            <Phone className="h-6 w-6 text-primary" />
+            <AppIcon size={28} />
             <h1 className="text-xl font-bold">OffDuty Call Filter</h1>
           </Link>
           <div className="flex items-center space-x-4">
@@ -450,7 +451,7 @@ export default function PrivacyPolicy(): React.JSX.Element {
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center space-x-2">
-              <Phone className="h-5 w-5 text-primary" />
+              <AppIcon size={24} />
               <span className="font-semibold">OffDuty Call Filter</span>
             </div>
             <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
