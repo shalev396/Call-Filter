@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AppIcon } from "@/components/AppIcon";
 import {
-  Phone,
   Shield,
   Lock,
   Eye,
