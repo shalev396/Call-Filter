@@ -88,9 +88,12 @@ jobs:
           status: completed
           whatsNewDirectory: android/play_store_strings/whatsnew
 
-      - name: Tag the production release
+      - name: Create GitHub Release (also creates the tag)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag ${{ steps.version.outputs.version_tag }}
-          git push origin ${{ steps.version.outputs.version_tag }}
+          NOTES=$(cat android/play_store_strings/whatsnew/whatsnew-en-US)
+          gh release create ${{ steps.version.outputs.version_tag }} \
+            --title "${{ steps.version.outputs.version_tag }}" \
+            --notes "$NOTES" \
+            --target ${{ github.sha }}

@@ -95,9 +95,12 @@ jobs:
           status: completed
           whatsNewDirectory: ${{ runner.temp }}/whatsnew
 
-      - name: Tag the testing release
+      - name: Create GitHub Release (also creates the tag)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "${{ steps.version.outputs.version_tag }}"
-          git push origin "${{ steps.version.outputs.version_tag }}"
+          gh release create ${{ steps.version.outputs.version_tag }} \
+            --prerelease \
+            --title "${{ steps.version.outputs.version_tag }} (testing)" \
+            --notes "Dev build ${{ steps.version.outputs.version_name }}" \
+            --target ${{ github.sha }}
