@@ -8,6 +8,9 @@ if (versionFile.exists()) {
     versionProps.load(versionFile.newReader())
 }
 
+def keystorePath = System.getenv("KEYSTORE_PATH") ?: "release-keystore.jks"
+def keystoreFile = file(keystorePath)
+
 android {
     namespace "com.shalev396.offdutycallfilter"
     compileSdkVersion 36
@@ -22,18 +25,22 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    signingConfigs {
-        release {
-            storeFile file(System.getenv("KEYSTORE_PATH") ?: "release-keystore.jks")
-            storePassword System.getenv("KEYSTORE_PASSWORD") ?: ""
-            keyAlias System.getenv("KEY_ALIAS") ?: ""
-            keyPassword System.getenv("KEY_PASSWORD") ?: ""
+    if (keystoreFile.exists()) {
+        signingConfigs {
+            release {
+                storeFile keystoreFile
+                storePassword System.getenv("KEYSTORE_PASSWORD") ?: ""
+                keyAlias System.getenv("KEY_ALIAS") ?: ""
+                keyPassword System.getenv("KEY_PASSWORD") ?: ""
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (keystoreFile.exists()) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
