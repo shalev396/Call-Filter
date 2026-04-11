@@ -2,6 +2,12 @@ plugins {
     id 'com.android.application'
 }
 
+def versionProps = new Properties()
+def versionFile = rootProject.file('version.properties')
+if (versionFile.exists()) {
+    versionProps.load(versionFile.newReader())
+}
+
 android {
     namespace "com.shalev396.offdutycallfilter"
     compileSdkVersion 36
@@ -10,8 +16,8 @@ android {
         applicationId "com.shalev396.offdutycallfilter"
         minSdkVersion 29
         targetSdkVersion 36
-        versionCode = System.getenv("VERSION_CODE")?.toInteger() ?: 3
-        versionName = System.getenv("VERSION_NAME") ?: "0.1.0"
+        versionCode = System.getenv("VERSION_CODE")?.toInteger() ?: (versionProps['VERSION_CODE']?.toInteger() ?: 1)
+        versionName = System.getenv("VERSION_NAME") ?: (versionProps['VERSION_NAME'] ?: "0.0.1")
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
