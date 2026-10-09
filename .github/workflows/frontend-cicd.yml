@@ -11,6 +11,7 @@ on:
     paths:
       - "web/**"
       - ".github/workflows/frontend-cicd.yml"
+  workflow_dispatch:
 
 jobs:
   deploy-frontend:
@@ -22,6 +23,7 @@ jobs:
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       STACK_NAME: ${{ secrets.STACK_NAME }}
+      WAF_WEB_ACL_ARN: ${{ secrets.WAF_WEB_ACL_ARN }}
 
     steps:
       - name: Mask sensitive environment variables
@@ -58,6 +60,20 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/my-github-actions-role
           mask-aws-account-id: true
+
+      - name: Deploy Infrastructure
+        run: |
+          echo "🏗️ Deploying CloudFormation stack..."
+
+          # Parameters not listed here keep their current stack values
+          aws cloudformation deploy \
+            --template-file web/cloudformation/frontend-infrastructure.yml \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --region "${{ env.AWS_REGION }}" \
+            --parameter-overrides "WebAclArn=${{ env.WAF_WEB_ACL_ARN }}" \
+            --no-fail-on-empty-changeset
+
+          echo "✅ Stack is up to date"
 
       - name: Get CloudFormation Outputs
         id: cf

@@ -15,6 +15,14 @@ Parameters:
     Type: String
     Description: ACM Certificate ARN for *.shalev396.com or the specific subdomain (must be in us-east-1)
 
+  WebAclArn:
+    Type: String
+    Default: ""
+    Description: Shared WAF web ACL. Empty means no WAF.
+
+Conditions:
+  HasWebAcl: !Not [!Equals [!Ref WebAclArn, ""]]
+
 Resources:
   FrontendBucket:
     Type: AWS::S3::Bucket
@@ -67,6 +75,7 @@ Resources:
         DefaultRootObject: index.html
         HttpVersion: http2and3
         PriceClass: PriceClass_100
+        WebACLId: !If [HasWebAcl, !Ref WebAclArn, !Ref AWS::NoValue]
         Aliases:
           - !Ref DomainName
         ViewerCertificate:
